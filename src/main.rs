@@ -1,20 +1,30 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 
-const SNAKE_SPEED: f32 = 500.0;
 const SNAKE_SIZE: f32 = 18.0;
+const SNAKE_SPEED: f32 = SNAKE_SIZE * 5.0;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_startup_system(spawn_camera)
         .add_startup_system(spawn_snake)
+        .add_system(snake_direction)
         .add_system(snake_movement)
         .add_system(snake_dead_check)
         .run();
 }
 
+#[derive(Eq, PartialEq)]
+enum Direction {
+    None,
+    Left,
+    Right,
+    Up,
+    Down,
+}
+
 #[derive(Component)]
-struct Snake;
+struct Snake(Direction);
 
 fn spawn_camera(mut commands: Commands, window_query: Query<&Window, With<PrimaryWindow>>) {
     let window = window_query.get_single().unwrap();
@@ -37,35 +47,45 @@ fn spawn_snake(
             texture: asset_server.load("snake.png"),
             ..default()
         },
-        Snake {},
+        Snake(Direction::None),
     ));
 }
 
-fn snake_movement(
-    keyboard_input: Res<Input<KeyCode>>,
-    mut snake_query: Query<&mut Transform, With<Snake>>,
-    time: Res<Time>,
-) {
-    if let Ok(mut transform) = snake_query.get_single_mut() {
-        let mut direction = Vec3::ZERO;
+fn snake_direction(keyboard_input: Res<Input<KeyCode>>, mut snake_query: Query<&mut Snake>) {
+    if let Ok(mut snake) = snake_query.get_single_mut() {
         if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
-            direction += Vec3::new(-1.0, 0.0, 0.0);
+            snake.0 = Direction::Left;
         }
         if keyboard_input.pressed(KeyCode::Right) || keyboard_input.pressed(KeyCode::D) {
-            direction += Vec3::new(1.0, 0.0, 0.0);
+            snake.0 = Direction::Right;
         }
         if keyboard_input.pressed(KeyCode::Up) || keyboard_input.pressed(KeyCode::W) {
-            direction += Vec3::new(0.0, 1.0, 0.0);
+            snake.0 = Direction::Up;
         }
         if keyboard_input.pressed(KeyCode::Down) || keyboard_input.pressed(KeyCode::S) {
-            direction += Vec3::new(0.0, -1.0, 0.0);
+            snake.0 = Direction::Down;
         }
+    }
+}
 
-        if direction.length() > 0.0 {
-            direction = direction.normalize();
+fn snake_movement(
+    snake_query: Query<&Snake>,
+    mut snake_transform_query: Query<&mut Transform, With<Snake>>,
+    time: Res<Time>,
+) {
+    if let Ok(snake) = snake_query.get_single() {
+        if snake.0 == Direction::None {
+            return;
         }
-
-        transform.translation += direction * SNAKE_SPEED * time.delta_seconds();
+        if let Ok(mut transform) = snake_transform_query.get_single_mut() {
+            transform.translation += match snake.0 {
+                Direction::Left => Vec3::new(-SNAKE_SPEED * time.delta_seconds(), 0.0, 0.0),
+                Direction::Right => Vec3::new(SNAKE_SPEED * time.delta_seconds(), 0.0, 0.0),
+                Direction::Up => Vec3::new(0.0, SNAKE_SPEED * time.delta_seconds(), 0.0),
+                Direction::Down => Vec3::new(0.0, -SNAKE_SPEED * time.delta_seconds(), 0.0),
+                _ => Vec3::ZERO,
+            }
+        }
     }
 }
 
