@@ -71,10 +71,10 @@ fn snake_movement(
 
 fn snake_dead_check(
     mut commands: Commands,
-    mut snake_query: Query<(Entity, &Transform), With<Snake>>,
+    snake_query: Query<(Entity, &Transform), With<Snake>>,
     window_query: Query<&Window, With<PrimaryWindow>>,
 ) {
-    if let Ok((snake_entity, snake_transform)) = snake_query.get_single_mut() {
+    if let Ok((snake_entity, snake_transform)) = snake_query.get_single() {
         let window = window_query.get_single().unwrap();
         let x_min = SNAKE_SIZE / 2.0;
         let x_max = window.width() - x_min;
