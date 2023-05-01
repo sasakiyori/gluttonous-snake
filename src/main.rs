@@ -1,6 +1,7 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 
 const SNAKE_SPEED: f32 = 500.0;
+const SNAKE_SIZE: f32 = 18.0;
 
 fn main() {
     App::new()
@@ -8,6 +9,7 @@ fn main() {
         .add_startup_system(spawn_camera)
         .add_startup_system(spawn_snake)
         .add_system(snake_movement)
+        .add_system(snake_dead_check)
         .run();
 }
 
@@ -64,5 +66,29 @@ fn snake_movement(
         }
 
         transform.translation += direction * SNAKE_SPEED * time.delta_seconds();
+    }
+}
+
+fn snake_dead_check(
+    mut commands: Commands,
+    mut snake_query: Query<(Entity, &Transform), With<Snake>>,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+) {
+    if let Ok((snake_entity, snake_transform)) = snake_query.get_single_mut() {
+        let window = window_query.get_single().unwrap();
+        let x_min = SNAKE_SIZE / 2.0;
+        let x_max = window.width() - x_min;
+        let y_min = SNAKE_SIZE / 2.0;
+        let y_max = window.height() - y_min;
+
+        let translation = snake_transform.translation;
+        if translation.x < x_min
+            || translation.x > x_max
+            || translation.y < y_min
+            || translation.y > y_max
+        {
+            println!("snake dead");
+            commands.entity(snake_entity).despawn();
+        }
     }
 }
