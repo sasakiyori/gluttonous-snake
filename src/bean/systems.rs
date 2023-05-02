@@ -1,5 +1,6 @@
 use super::components::Bean;
 use crate::snake::components::Snake;
+
 use bevy::{prelude::*, window::PrimaryWindow};
 use rand::prelude::random;
 
@@ -11,7 +12,8 @@ pub fn spawn_bean(
     asset_server: Res<AssetServer>,
 ) {
     // no need to spawn if bean still exists
-    if let Ok(_) = bean_query.get_single() {
+    // TODO: why bean_query is still not empty when bean has been de-spawned?
+    if !bean_query.is_empty() {
         return;
     }
 
@@ -25,6 +27,7 @@ pub fn spawn_bean(
     }
     commands.spawn((
         SpriteBundle {
+            // TODO: make sure that snake and bean be in the same grid
             transform: Transform::from_xyz(x, y, 0.0),
             texture: asset_server.load("bean.png"),
             ..default()

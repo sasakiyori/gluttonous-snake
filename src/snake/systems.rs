@@ -1,5 +1,7 @@
 use super::components::{Direction, Snake};
 
+use crate::bean::components::Bean;
+
 use bevy::{prelude::*, window::PrimaryWindow};
 
 const SNAKE_SIZE: f32 = 18.0;
@@ -79,6 +81,27 @@ pub fn snake_dead_check(
         {
             println!("snake dead");
             commands.entity(snake_entity).despawn();
+        }
+    }
+}
+
+pub fn snake_eat_bean_check(
+    mut commands: Commands,
+    snake_query: Query<&Transform, With<Snake>>,
+    bean_query: Query<(Entity, &Transform), With<Bean>>,
+) {
+    if let Ok(snake_transform) = snake_query.get_single() {
+        if let Ok((bean_entity, bean_transform)) = bean_query.get_single() {
+            let distance = snake_transform
+                .translation
+                .distance(bean_transform.translation);
+            let snake_radius = SNAKE_SIZE / 2.0;
+            // TODO: use unique size
+            let bean_radius = SNAKE_SIZE / 2.0;
+            if distance < snake_radius + bean_radius {
+                println!("snake eat bean!");
+                commands.entity(bean_entity).despawn();
+            }
         }
     }
 }

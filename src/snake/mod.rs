@@ -11,6 +11,7 @@ impl Plugin for SnakePlugin {
         app.add_startup_system(spawn_snake)
             .add_system(snake_direction)
             .add_system(snake_movement)
-            .add_system(snake_dead_check);
+            .add_system(snake_dead_check)
+            .add_system(snake_eat_bean_check);
     }
 }
