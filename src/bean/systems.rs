@@ -1,4 +1,5 @@
 use super::components::Bean;
+use super::resources::BeanResources;
 use crate::snake::components::Snake;
 
 use bevy::{prelude::*, window::PrimaryWindow};
@@ -9,10 +10,9 @@ pub fn spawn_bean(
     window_query: Query<&Window, With<PrimaryWindow>>,
     snake_query: Query<&Transform, With<Snake>>,
     bean_query: Query<&Bean>,
-    asset_server: Res<AssetServer>,
+    resource_query: Res<BeanResources>,
 ) {
     // no need to spawn if bean still exists
-    // TODO: why bean_query is still not empty when bean has been de-spawned?
     if !bean_query.is_empty() {
         return;
     }
@@ -29,7 +29,9 @@ pub fn spawn_bean(
         SpriteBundle {
             // TODO: make sure that snake and bean be in the same grid
             transform: Transform::from_xyz(x, y, 0.0),
-            texture: asset_server.load("bean.png"),
+            // why use the clone of the resource but not directly load the asset directly?
+            // same issue as: https://github.com/bevyengine/bevy/discussions/8288
+            texture: resource_query.image.clone(),
             ..default()
         },
         Bean {},
