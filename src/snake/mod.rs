@@ -1,4 +1,4 @@
-mod components;
+pub mod components;
 mod systems;
 
 use bevy::prelude::{App, Plugin};

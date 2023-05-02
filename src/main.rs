@@ -3,6 +3,7 @@ mod snake;
 
 use bevy::{prelude::*, window::PrimaryWindow};
 
+use bean::BeanPlugin;
 use snake::SnakePlugin;
 
 fn main() {
@@ -10,6 +11,7 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_startup_system(spawn_camera)
         .add_plugin(SnakePlugin)
+        .add_plugin(BeanPlugin)
         .run();
 }
 
