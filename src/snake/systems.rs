@@ -1,4 +1,7 @@
-use super::components::{Direction, Snake};
+use super::{
+    components::{Direction, Snake},
+    resources::SnakeResources,
+};
 
 use crate::bean::components::Bean;
 
@@ -10,13 +13,13 @@ const SNAKE_SPEED: f32 = SNAKE_SIZE * 5.0;
 pub fn spawn_snake(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
-    asset_server: Res<AssetServer>,
+    resource_query: Res<SnakeResources>,
 ) {
     let window = window_query.get_single().unwrap();
     commands.spawn((
         SpriteBundle {
             transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 0.0),
-            texture: asset_server.load("snake.png"),
+            texture: resource_query.image.clone(),
             ..default()
         },
         Snake(Direction::None),
