@@ -1,7 +1,9 @@
 use super::{
-    components::{Direction, Snake},
+    components::{Direction, Snake, SnakePiece},
     resources::SnakeResources,
 };
+
+use std::collections::LinkedList;
 
 use crate::bean::components::Bean;
 
@@ -15,30 +17,52 @@ pub fn spawn_snake(
     window_query: Query<&Window, With<PrimaryWindow>>,
     resource_query: Res<SnakeResources>,
 ) {
-    let window = window_query.get_single().unwrap();
+    let window: &Window = window_query.get_single().unwrap();
+    let mut snake = LinkedList::new();
+    snake.push_back(SnakePiece(Direction::None));
     commands.spawn((
         SpriteBundle {
             transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 0.0),
             texture: resource_query.image.clone(),
             ..default()
         },
-        Snake(Direction::None),
+        Snake { body: snake },
     ));
 }
 
 pub fn snake_direction(keyboard_input: Res<Input<KeyCode>>, mut snake_query: Query<&mut Snake>) {
+    let mut direction = Direction::None;
+    if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
+        direction = Direction::Left;
+    }
+    if keyboard_input.pressed(KeyCode::Right) || keyboard_input.pressed(KeyCode::D) {
+        direction = Direction::Right;
+    }
+    if keyboard_input.pressed(KeyCode::Up) || keyboard_input.pressed(KeyCode::W) {
+        direction = Direction::Up;
+    }
+    if keyboard_input.pressed(KeyCode::Down) || keyboard_input.pressed(KeyCode::S) {
+        direction = Direction::Down;
+    }
+    if direction == Direction::None {
+        return;
+    }
+
     if let Ok(mut snake) = snake_query.get_single_mut() {
-        if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
-            snake.0 = Direction::Left;
+        let mut iter = snake.body.iter_mut();
+        let mut prev = Direction::None;
+        loop {
+            match iter.next() {
+                Some(piece) => {
+                    let tmp = piece.0;
+                    piece.0 = prev;
+                    prev = tmp;
+                }
+                None => break,
+            }
         }
-        if keyboard_input.pressed(KeyCode::Right) || keyboard_input.pressed(KeyCode::D) {
-            snake.0 = Direction::Right;
-        }
-        if keyboard_input.pressed(KeyCode::Up) || keyboard_input.pressed(KeyCode::W) {
-            snake.0 = Direction::Up;
-        }
-        if keyboard_input.pressed(KeyCode::Down) || keyboard_input.pressed(KeyCode::S) {
-            snake.0 = Direction::Down;
+        if let Some(head) = snake.body.front_mut() {
+            head.0 = direction;
         }
     }
 }
@@ -49,16 +73,18 @@ pub fn snake_movement(
     time: Res<Time>,
 ) {
     if let Ok(snake) = snake_query.get_single() {
-        if snake.0 == Direction::None {
-            return;
-        }
-        if let Ok(mut transform) = snake_transform_query.get_single_mut() {
-            transform.translation += match snake.0 {
-                Direction::Left => Vec3::new(-SNAKE_SPEED * time.delta_seconds(), 0.0, 0.0),
-                Direction::Right => Vec3::new(SNAKE_SPEED * time.delta_seconds(), 0.0, 0.0),
-                Direction::Up => Vec3::new(0.0, SNAKE_SPEED * time.delta_seconds(), 0.0),
-                Direction::Down => Vec3::new(0.0, -SNAKE_SPEED * time.delta_seconds(), 0.0),
-                _ => Vec3::ZERO,
+        for piece in snake.body.iter() {
+            if piece.0 == Direction::None {
+                continue;
+            }
+            if let Ok(mut transform) = snake_transform_query.get_single_mut() {
+                transform.translation += match piece.0 {
+                    Direction::Left => Vec3::new(-SNAKE_SPEED * time.delta_seconds(), 0.0, 0.0),
+                    Direction::Right => Vec3::new(SNAKE_SPEED * time.delta_seconds(), 0.0, 0.0),
+                    Direction::Up => Vec3::new(0.0, SNAKE_SPEED * time.delta_seconds(), 0.0),
+                    Direction::Down => Vec3::new(0.0, -SNAKE_SPEED * time.delta_seconds(), 0.0),
+                    _ => Vec3::ZERO,
+                }
             }
         }
     }
