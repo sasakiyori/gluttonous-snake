@@ -27,39 +27,42 @@ pub fn spawn_snake(
 }
 
 pub fn snake_direction(keyboard_input: Res<Input<KeyCode>>, mut snake_query: Query<&mut Snake>) {
-    if let Ok(mut snake) = snake_query.get_single_mut() {
-        if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
-            snake.0 = Direction::Left;
+    let mut direction = Direction::None;
+    if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
+        direction = Direction::Left;
+    }
+    if keyboard_input.pressed(KeyCode::Right) || keyboard_input.pressed(KeyCode::D) {
+        direction = Direction::Right;
+    }
+    if keyboard_input.pressed(KeyCode::Up) || keyboard_input.pressed(KeyCode::W) {
+        direction = Direction::Up;
+    }
+    if keyboard_input.pressed(KeyCode::Down) || keyboard_input.pressed(KeyCode::S) {
+        direction = Direction::Down;
+    }
+
+    for mut iter in snake_query.iter_mut() {
+        if direction == Direction::None {
+            continue;
         }
-        if keyboard_input.pressed(KeyCode::Right) || keyboard_input.pressed(KeyCode::D) {
-            snake.0 = Direction::Right;
-        }
-        if keyboard_input.pressed(KeyCode::Up) || keyboard_input.pressed(KeyCode::W) {
-            snake.0 = Direction::Up;
-        }
-        if keyboard_input.pressed(KeyCode::Down) || keyboard_input.pressed(KeyCode::S) {
-            snake.0 = Direction::Down;
-        }
+        let tmp = iter.0;
+        iter.0 = direction;
+        direction = tmp;
     }
 }
 
 pub fn snake_movement(
-    snake_query: Query<&Snake>,
-    mut snake_transform_query: Query<&mut Transform, With<Snake>>,
+    mut snake_transform_query: Query<(&Snake, &mut Transform), With<Snake>>,
     time: Res<Time>,
 ) {
-    if let Ok(snake) = snake_query.get_single() {
-        if snake.0 == Direction::None {
-            return;
-        }
-        if let Ok(mut transform) = snake_transform_query.get_single_mut() {
-            transform.translation += match snake.0 {
-                Direction::Left => Vec3::new(-SNAKE_SPEED * time.delta_seconds(), 0.0, 0.0),
-                Direction::Right => Vec3::new(SNAKE_SPEED * time.delta_seconds(), 0.0, 0.0),
-                Direction::Up => Vec3::new(0.0, SNAKE_SPEED * time.delta_seconds(), 0.0),
-                Direction::Down => Vec3::new(0.0, -SNAKE_SPEED * time.delta_seconds(), 0.0),
-                _ => Vec3::ZERO,
-            }
+    let delta = time.delta_seconds();
+    for (snake, mut transform) in snake_transform_query.iter_mut() {
+        transform.translation += match snake.0 {
+            Direction::Left => Vec3::new(-SNAKE_SPEED * delta, 0.0, 0.0),
+            Direction::Right => Vec3::new(SNAKE_SPEED * delta, 0.0, 0.0),
+            Direction::Up => Vec3::new(0.0, SNAKE_SPEED * delta, 0.0),
+            Direction::Down => Vec3::new(0.0, -SNAKE_SPEED * delta, 0.0),
+            _ => Vec3::ZERO,
         }
     }
 }
@@ -90,20 +93,38 @@ pub fn snake_dead_check(
 
 pub fn snake_eat_bean_check(
     mut commands: Commands,
-    snake_query: Query<&Transform, With<Snake>>,
+    snake_query: Query<(&Snake, &Transform), With<Snake>>,
     bean_query: Query<(Entity, &Transform), With<Bean>>,
+    resource_query: Res<SnakeResources>,
 ) {
-    if let Ok(snake_transform) = snake_query.get_single() {
+    let snakes = snake_query.iter().collect::<Vec<(&Snake, &Transform)>>();
+    let len = snakes.len();
+    if len > 0 {
         if let Ok((bean_entity, bean_transform)) = bean_query.get_single() {
-            let distance = snake_transform
-                .translation
-                .distance(bean_transform.translation);
+            let distance = snakes[0].1.translation.distance(bean_transform.translation);
             let snake_radius = SNAKE_SIZE / 2.0;
             // TODO: use unique size
             let bean_radius = SNAKE_SIZE / 2.0;
             if distance < snake_radius + bean_radius {
                 println!("snake eat bean!");
                 commands.entity(bean_entity).despawn();
+                commands.spawn((
+                    SpriteBundle {
+                        transform: Transform::from_translation(
+                            snakes[len - 1].1.translation
+                                + match snakes[len - 1].0 .0 {
+                                    Direction::Left => Vec3::new(SNAKE_SIZE, 0.0, 0.0),
+                                    Direction::Right => Vec3::new(-SNAKE_SIZE, 0.0, 0.0),
+                                    Direction::Up => Vec3::new(0.0, -SNAKE_SIZE, 0.0),
+                                    Direction::Down => Vec3::new(0.0, SNAKE_SIZE, 0.0),
+                                    _ => Vec3::ZERO,
+                                },
+                        ),
+                        texture: resource_query.image.clone(),
+                        ..default()
+                    },
+                    Snake(snakes[len - 1].0 .0),
+                ));
             }
         }
     }

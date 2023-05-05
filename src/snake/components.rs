@@ -1,6 +1,6 @@
 use bevy::prelude::Component;
 
-#[derive(Eq, PartialEq)]
+#[derive(Clone, Copy, Eq, PartialEq)]
 pub enum Direction {
     None,
     Left,
