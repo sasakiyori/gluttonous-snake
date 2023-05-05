@@ -48,9 +48,13 @@ pub fn snake_direction(keyboard_input: Res<Input<KeyCode>>, mut snake_query: Que
         return;
     }
 
+    // TODO: better update method?
+    // E.g. remove the snake tail, add a piece to the head. That seems that snake moved!
     if let Ok(mut snake) = snake_query.get_single_mut() {
         let mut iter = snake.body.iter_mut();
         let mut prev = Direction::None;
+        // the movement of every snake piece follows the previous one,
+        // and the head of snake follows its or the keyboard input.
         loop {
             match iter.next() {
                 Some(piece) => {
