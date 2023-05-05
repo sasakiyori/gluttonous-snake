@@ -1,6 +1,8 @@
-use bevy::prelude::Component;
+use std::collections::LinkedList;
 
-#[derive(Eq, PartialEq)]
+use bevy::prelude::{Component, Entity};
+
+#[derive(Eq, PartialEq, Clone, Copy)]
 pub enum Direction {
     None,
     Left,
@@ -10,4 +12,10 @@ pub enum Direction {
 }
 
 #[derive(Component)]
-pub struct Snake(pub Direction);
+pub struct SnakePiece;
+
+#[derive(Component)]
+pub struct Snake {
+    pub body: LinkedList<Entity>,
+    pub direction: Direction,
+}
