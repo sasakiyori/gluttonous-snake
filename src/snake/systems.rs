@@ -1,6 +1,6 @@
 use super::{
     components::{Direction, Snake, SnakePiece},
-    resources::SnakeResources,
+    resources::{SnakeMoveTimer, SnakeResources},
 };
 
 use std::collections::LinkedList;
@@ -10,7 +10,7 @@ use crate::bean::components::Bean;
 use bevy::{prelude::*, window::PrimaryWindow};
 
 const SNAKE_SIZE: f32 = 18.0;
-const SNAKE_SPEED: f32 = SNAKE_SIZE * 5.0;
+const SNAKE_SPEED: f32 = SNAKE_SIZE;
 
 pub fn spawn_snake(
     mut commands: Commands,
@@ -56,8 +56,13 @@ pub fn snake_direction(keyboard_input: Res<Input<KeyCode>>, mut snake_query: Que
 pub fn snake_movement(
     mut snake_query: Query<&mut Snake>,
     mut snake_transform_query: Query<(Entity, &mut Transform), With<SnakePiece>>,
+    mut snake_move_timer: ResMut<SnakeMoveTimer>,
     time: Res<Time>,
 ) {
+    // every movement frame move the snake
+    if !snake_move_timer.timer.tick(time.delta()).just_finished() {
+        return;
+    }
     if let Ok(mut snake) = snake_query.get_single_mut() {
         if let Some(tail) = snake.body.pop_back() {
             let head = match snake.body.front() {
@@ -68,11 +73,8 @@ pub fn snake_movement(
             // if there is only one snake piece
             if head == tail {
                 if let Ok((_, mut transform)) = snake_transform_query.get_single_mut() {
-                    transform.translation = dest_translation(
-                        transform.translation,
-                        snake.direction,
-                        SNAKE_SPEED * time.delta_seconds(),
-                    );
+                    transform.translation =
+                        dest_translation(transform.translation, snake.direction, SNAKE_SPEED);
                 }
             } else {
                 let mut head_translation = Vec3::new(0.0, 0.0, 0.0);
@@ -80,11 +82,8 @@ pub fn snake_movement(
                     head_translation = head_transform.translation;
                 }
                 if let Ok((_, mut tail_transform)) = snake_transform_query.get_mut(tail) {
-                    tail_transform.translation = dest_translation(
-                        head_translation,
-                        snake.direction,
-                        SNAKE_SPEED * time.delta_seconds(),
-                    );
+                    tail_transform.translation =
+                        dest_translation(head_translation, snake.direction, SNAKE_SPEED);
                 }
             }
         }
@@ -156,23 +155,13 @@ pub fn snake_eat_bean_check(
             // destroy bean
             commands.entity(bean_entity).despawn();
             // grow snake: spawn new snake piece as head
-            let trans = dest_translation(
-                snake_head_transform.translation,
-                snake.direction,
-                SNAKE_SIZE * 2.0,
-            );
-            println!(
-                "snake head: {:?}, expect trans: {:?}",
-                snake_head_transform.translation, trans
-            );
-            // this should be executed in next state?
             let piece: Entity = commands
                 .spawn((
                     SpriteBundle {
                         transform: Transform::from_translation(dest_translation(
                             snake_head_transform.translation,
                             snake.direction,
-                            SNAKE_SIZE * 2.0,
+                            SNAKE_SIZE,
                         )),
                         texture: resource_query.image.clone(),
                         ..default()
