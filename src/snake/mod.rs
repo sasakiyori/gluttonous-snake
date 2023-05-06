@@ -4,14 +4,15 @@ mod systems;
 
 use bevy::prelude::*;
 
-use resources::cache_snake_resources;
+use resources::*;
 use systems::*;
 
 pub struct SnakePlugin;
 
 impl Plugin for SnakePlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(cache_snake_resources)
+        app.init_resource::<SnakeMoveTimer>()
+            .add_startup_system(cache_snake_resources)
             // usually startup systems are in the same stage
             // so if we don't use the base set or create a separate startup stage, the cached resources
             //    will not be found because they are not loaded yet.

@@ -1,6 +1,6 @@
 use super::{
     components::{Direction, Snake, SnakePiece},
-    resources::SnakeResources,
+    resources::{SnakeMoveTimer, SnakeResources},
 };
 
 use std::collections::LinkedList;
@@ -10,7 +10,7 @@ use crate::bean::components::Bean;
 use bevy::{prelude::*, window::PrimaryWindow};
 
 const SNAKE_SIZE: f32 = 18.0;
-const SNAKE_SPEED: f32 = SNAKE_SIZE * 5.0;
+const SNAKE_SPEED: f32 = SNAKE_SIZE;
 
 pub fn spawn_snake(
     mut commands: Commands,
@@ -37,18 +37,29 @@ pub fn spawn_snake(
 }
 
 pub fn snake_direction(keyboard_input: Res<Input<KeyCode>>, mut snake_query: Query<&mut Snake>) {
+    let mut next_direction = Direction::None;
     if let Ok(mut snake) = snake_query.get_single_mut() {
         if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
-            snake.direction = Direction::Left;
+            next_direction = Direction::Left;
         }
         if keyboard_input.pressed(KeyCode::Right) || keyboard_input.pressed(KeyCode::D) {
-            snake.direction = Direction::Right;
+            next_direction = Direction::Right;
         }
         if keyboard_input.pressed(KeyCode::Up) || keyboard_input.pressed(KeyCode::W) {
-            snake.direction = Direction::Up;
+            next_direction = Direction::Up;
         }
         if keyboard_input.pressed(KeyCode::Down) || keyboard_input.pressed(KeyCode::S) {
-            snake.direction = Direction::Down;
+            next_direction = Direction::Down;
+        }
+
+        // if keyboard input does not cross the snake direction, and snake has more than 1 piece,
+        // snake should not turn round
+        if !snake.direction.is_crossing(&next_direction) && snake.body.len() > 1 {
+            return;
+        }
+        // update next direction
+        if next_direction != Direction::None {
+            snake.direction = next_direction;
         }
     }
 }
@@ -56,8 +67,13 @@ pub fn snake_direction(keyboard_input: Res<Input<KeyCode>>, mut snake_query: Que
 pub fn snake_movement(
     mut snake_query: Query<&mut Snake>,
     mut snake_transform_query: Query<(Entity, &mut Transform), With<SnakePiece>>,
+    mut snake_move_timer: ResMut<SnakeMoveTimer>,
     time: Res<Time>,
 ) {
+    // every movement frame move the snake
+    if !snake_move_timer.timer.tick(time.delta()).just_finished() {
+        return;
+    }
     if let Ok(mut snake) = snake_query.get_single_mut() {
         if let Some(tail) = snake.body.pop_back() {
             let head = match snake.body.front() {
@@ -68,13 +84,8 @@ pub fn snake_movement(
             // if there is only one snake piece
             if head == tail {
                 if let Ok((_, mut transform)) = snake_transform_query.get_single_mut() {
-                    transform.translation += match snake.direction {
-                        Direction::Left => Vec3::new(-SNAKE_SPEED * time.delta_seconds(), 0.0, 0.0),
-                        Direction::Right => Vec3::new(SNAKE_SPEED * time.delta_seconds(), 0.0, 0.0),
-                        Direction::Up => Vec3::new(0.0, SNAKE_SPEED * time.delta_seconds(), 0.0),
-                        Direction::Down => Vec3::new(0.0, -SNAKE_SPEED * time.delta_seconds(), 0.0),
-                        _ => Vec3::ZERO,
-                    }
+                    transform.translation =
+                        dest_translation(transform.translation, &snake.direction, SNAKE_SPEED);
                 }
             } else {
                 let mut head_translation = Vec3::new(0.0, 0.0, 0.0);
@@ -82,22 +93,8 @@ pub fn snake_movement(
                     head_translation = head_transform.translation;
                 }
                 if let Ok((_, mut tail_transform)) = snake_transform_query.get_mut(tail) {
-                    tail_transform.translation = head_translation
-                        + match snake.direction {
-                            Direction::Left => {
-                                Vec3::new(-SNAKE_SPEED * time.delta_seconds(), 0.0, 0.0)
-                            }
-                            Direction::Right => {
-                                Vec3::new(SNAKE_SPEED * time.delta_seconds(), 0.0, 0.0)
-                            }
-                            Direction::Up => {
-                                Vec3::new(0.0, SNAKE_SPEED * time.delta_seconds(), 0.0)
-                            }
-                            Direction::Down => {
-                                Vec3::new(0.0, -SNAKE_SPEED * time.delta_seconds(), 0.0)
-                            }
-                            _ => Vec3::ZERO,
-                        };
+                    tail_transform.translation =
+                        dest_translation(head_translation, &snake.direction, SNAKE_SPEED);
                 }
             }
         }
@@ -143,12 +140,13 @@ pub fn snake_dead_check(
 
 pub fn snake_eat_bean_check(
     mut commands: Commands,
-    snake_query: Query<&Snake>,
+    mut snake_query: Query<&mut Snake>,
     snake_transform_query: Query<(Entity, &Transform), With<SnakePiece>>,
     bean_query: Query<(Entity, &Transform), With<Bean>>,
+    resource_query: Res<SnakeResources>,
 ) {
     // snake will never be destroyed
-    let snake = snake_query.get_single().unwrap();
+    let mut snake = snake_query.get_single_mut().unwrap();
 
     let snake_head_entity = match snake.body.front() {
         Some(entity) => entity,
@@ -165,7 +163,34 @@ pub fn snake_eat_bean_check(
         let bean_radius = SNAKE_SIZE / 2.0;
         if distance < snake_radius + bean_radius {
             println!("snake eat bean!");
+            // destroy bean
             commands.entity(bean_entity).despawn();
+            // grow snake: spawn new snake piece as head
+            let piece: Entity = commands
+                .spawn((
+                    SpriteBundle {
+                        transform: Transform::from_translation(dest_translation(
+                            snake_head_transform.translation,
+                            &snake.direction,
+                            SNAKE_SIZE,
+                        )),
+                        texture: resource_query.image.clone(),
+                        ..default()
+                    },
+                    SnakePiece,
+                ))
+                .id();
+            snake.body.push_front(piece);
         }
+    }
+}
+
+fn dest_translation(translation: Vec3, direction: &Direction, movement: f32) -> Vec3 {
+    match direction {
+        Direction::Left => translation + Vec3::new(-movement, 0.0, 0.0),
+        Direction::Right => translation + Vec3::new(movement, 0.0, 0.0),
+        Direction::Up => translation + Vec3::new(0.0, movement, 0.0),
+        Direction::Down => translation + Vec3::new(0.0, -movement, 0.0),
+        _ => translation,
     }
 }
