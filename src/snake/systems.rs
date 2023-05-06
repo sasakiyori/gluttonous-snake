@@ -1,6 +1,6 @@
 use super::{
     components::{Direction, Snake},
-    resources::SnakeResources,
+    resources::{SnakeMoveTimer, SnakeResources},
 };
 
 use crate::bean::components::Bean;
@@ -8,7 +8,7 @@ use crate::bean::components::Bean;
 use bevy::{prelude::*, window::PrimaryWindow};
 
 const SNAKE_SIZE: f32 = 18.0;
-const SNAKE_SPEED: f32 = SNAKE_SIZE * 5.0;
+const SNAKE_SPEED: f32 = SNAKE_SIZE / 6.0;
 
 pub fn spawn_snake(
     mut commands: Commands,
@@ -26,7 +26,16 @@ pub fn spawn_snake(
     ));
 }
 
-pub fn snake_direction(keyboard_input: Res<Input<KeyCode>>, mut snake_query: Query<&mut Snake>) {
+pub fn snake_direction(
+    keyboard_input: Res<Input<KeyCode>>,
+    mut snake_query: Query<&mut Snake>,
+    mut snake_move_timer: ResMut<SnakeMoveTimer>,
+    time: Res<Time>,
+) {
+    if !snake_move_timer.timer.tick(time.delta()).just_finished() {
+        return;
+    }
+
     let mut direction = Direction::None;
     if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
         direction = Direction::Left;
@@ -40,28 +49,24 @@ pub fn snake_direction(keyboard_input: Res<Input<KeyCode>>, mut snake_query: Que
     if keyboard_input.pressed(KeyCode::Down) || keyboard_input.pressed(KeyCode::S) {
         direction = Direction::Down;
     }
+    if direction == Direction::None {
+        return;
+    }
 
     for mut iter in snake_query.iter_mut() {
-        if direction == Direction::None {
-            continue;
-        }
         let tmp = iter.0;
         iter.0 = direction;
         direction = tmp;
     }
 }
 
-pub fn snake_movement(
-    mut snake_transform_query: Query<(&Snake, &mut Transform), With<Snake>>,
-    time: Res<Time>,
-) {
-    let delta = time.delta_seconds();
+pub fn snake_movement(mut snake_transform_query: Query<(&Snake, &mut Transform), With<Snake>>) {
     for (snake, mut transform) in snake_transform_query.iter_mut() {
         transform.translation += match snake.0 {
-            Direction::Left => Vec3::new(-SNAKE_SPEED * delta, 0.0, 0.0),
-            Direction::Right => Vec3::new(SNAKE_SPEED * delta, 0.0, 0.0),
-            Direction::Up => Vec3::new(0.0, SNAKE_SPEED * delta, 0.0),
-            Direction::Down => Vec3::new(0.0, -SNAKE_SPEED * delta, 0.0),
+            Direction::Left => Vec3::new(-SNAKE_SPEED, 0.0, 0.0),
+            Direction::Right => Vec3::new(SNAKE_SPEED, 0.0, 0.0),
+            Direction::Up => Vec3::new(0.0, SNAKE_SPEED, 0.0),
+            Direction::Down => Vec3::new(0.0, -SNAKE_SPEED, 0.0),
             _ => Vec3::ZERO,
         }
     }
