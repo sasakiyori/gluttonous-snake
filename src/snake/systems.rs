@@ -37,18 +37,29 @@ pub fn spawn_snake(
 }
 
 pub fn snake_direction(keyboard_input: Res<Input<KeyCode>>, mut snake_query: Query<&mut Snake>) {
+    let mut next_direction = Direction::None;
     if let Ok(mut snake) = snake_query.get_single_mut() {
         if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
-            snake.direction = Direction::Left;
+            next_direction = Direction::Left;
         }
         if keyboard_input.pressed(KeyCode::Right) || keyboard_input.pressed(KeyCode::D) {
-            snake.direction = Direction::Right;
+            next_direction = Direction::Right;
         }
         if keyboard_input.pressed(KeyCode::Up) || keyboard_input.pressed(KeyCode::W) {
-            snake.direction = Direction::Up;
+            next_direction = Direction::Up;
         }
         if keyboard_input.pressed(KeyCode::Down) || keyboard_input.pressed(KeyCode::S) {
-            snake.direction = Direction::Down;
+            next_direction = Direction::Down;
+        }
+
+        // if keyboard input does not cross the snake direction, and snake has more than 1 piece,
+        // snake should not turn round
+        if !snake.direction.is_crossing(&next_direction) && snake.body.len() > 1 {
+            return;
+        }
+        // update next direction
+        if next_direction != Direction::None {
+            snake.direction = next_direction;
         }
     }
 }
@@ -74,7 +85,7 @@ pub fn snake_movement(
             if head == tail {
                 if let Ok((_, mut transform)) = snake_transform_query.get_single_mut() {
                     transform.translation =
-                        dest_translation(transform.translation, snake.direction, SNAKE_SPEED);
+                        dest_translation(transform.translation, &snake.direction, SNAKE_SPEED);
                 }
             } else {
                 let mut head_translation = Vec3::new(0.0, 0.0, 0.0);
@@ -83,7 +94,7 @@ pub fn snake_movement(
                 }
                 if let Ok((_, mut tail_transform)) = snake_transform_query.get_mut(tail) {
                     tail_transform.translation =
-                        dest_translation(head_translation, snake.direction, SNAKE_SPEED);
+                        dest_translation(head_translation, &snake.direction, SNAKE_SPEED);
                 }
             }
         }
@@ -160,7 +171,7 @@ pub fn snake_eat_bean_check(
                     SpriteBundle {
                         transform: Transform::from_translation(dest_translation(
                             snake_head_transform.translation,
-                            snake.direction,
+                            &snake.direction,
                             SNAKE_SIZE,
                         )),
                         texture: resource_query.image.clone(),
@@ -174,7 +185,7 @@ pub fn snake_eat_bean_check(
     }
 }
 
-fn dest_translation(translation: Vec3, direction: Direction, movement: f32) -> Vec3 {
+fn dest_translation(translation: Vec3, direction: &Direction, movement: f32) -> Vec3 {
     match direction {
         Direction::Left => translation + Vec3::new(-movement, 0.0, 0.0),
         Direction::Right => translation + Vec3::new(movement, 0.0, 0.0),
