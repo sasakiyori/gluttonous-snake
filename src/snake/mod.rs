@@ -20,9 +20,18 @@ impl Plugin for SnakePlugin {
             // https://github.com/bevyengine/bevy/discussions/8335
             // https://www.reddit.com/r/bevy/comments/xv1hog/startup_systems_not_working_as_expected/
             .add_startup_system(spawn_snake.in_base_set(StartupSet::PostStartup))
-            .add_system(snake_direction)
-            .add_system(snake_movement)
-            .add_system(snake_dead_check)
-            .add_system(snake_eat_bean_check);
+            // 1. snake_eat_bean_check must run before snake_move,
+            // but I am not so sure that snake_dead_check should do that as well.
+            // 2. since there has entity spawned in the snake_eat_bean_check,
+            // I think we should run apply_system_buffers to flush the Query for Snake
+            .add_systems(
+                (
+                    snake_dead_check,
+                    snake_eat_bean_check,
+                    apply_system_buffers,
+                    snake_move,
+                )
+                    .chain(),
+            );
     }
 }

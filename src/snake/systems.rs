@@ -26,41 +26,40 @@ pub fn spawn_snake(
     ));
 }
 
-pub fn snake_direction(
+pub fn snake_move(
     keyboard_input: Res<Input<KeyCode>>,
-    mut snake_query: Query<&mut Snake>,
+    mut snake_transform_query: Query<(&mut Snake, &mut Transform), With<Snake>>,
     mut snake_move_timer: ResMut<SnakeMoveTimer>,
     time: Res<Time>,
 ) {
-    if !snake_move_timer.timer.tick(time.delta()).just_finished() {
-        return;
-    }
+    // at the specific frame, we should change the direction by keyboard input
+    if snake_move_timer.timer.tick(time.delta()).just_finished() {
+        let mut direction = Direction::None;
+        if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
+            direction = Direction::Left;
+        } else if keyboard_input.pressed(KeyCode::Right) || keyboard_input.pressed(KeyCode::D) {
+            direction = Direction::Right;
+        } else if keyboard_input.pressed(KeyCode::Up) || keyboard_input.pressed(KeyCode::W) {
+            direction = Direction::Up;
+        } else if keyboard_input.pressed(KeyCode::Down) || keyboard_input.pressed(KeyCode::S) {
+            direction = Direction::Down;
+        }
 
-    let mut direction = Direction::None;
-    if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
-        direction = Direction::Left;
+        // if keyboard input does not cross the snake direction, and snake has more than 1 piece,
+        // snake should not turn round
+        let (head, _) = snake_transform_query.iter().next().unwrap();
+        if direction != Direction::None && head.0.is_crossing(&direction) {
+            // if there actually has a keyboard input, we should change the direction
+            if direction != Direction::None {
+                for (mut snake, _) in snake_transform_query.iter_mut() {
+                    let tmp = snake.0;
+                    snake.0 = direction;
+                    direction = tmp;
+                }
+            }
+        }
     }
-    if keyboard_input.pressed(KeyCode::Right) || keyboard_input.pressed(KeyCode::D) {
-        direction = Direction::Right;
-    }
-    if keyboard_input.pressed(KeyCode::Up) || keyboard_input.pressed(KeyCode::W) {
-        direction = Direction::Up;
-    }
-    if keyboard_input.pressed(KeyCode::Down) || keyboard_input.pressed(KeyCode::S) {
-        direction = Direction::Down;
-    }
-    if direction == Direction::None {
-        return;
-    }
-
-    for mut iter in snake_query.iter_mut() {
-        let tmp = iter.0;
-        iter.0 = direction;
-        direction = tmp;
-    }
-}
-
-pub fn snake_movement(mut snake_transform_query: Query<(&Snake, &mut Transform), With<Snake>>) {
+    // movement
     for (snake, mut transform) in snake_transform_query.iter_mut() {
         transform.translation += match snake.0 {
             Direction::Left => Vec3::new(-SNAKE_SPEED, 0.0, 0.0),
@@ -130,6 +129,7 @@ pub fn snake_eat_bean_check(
                     },
                     Snake(snakes[len - 1].0 .0),
                 ));
+                println!("snake body expand!");
             }
         }
     }
