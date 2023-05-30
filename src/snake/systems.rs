@@ -45,17 +45,17 @@ pub fn snake_move(
             direction = Direction::Down;
         }
 
-        // if keyboard input does not cross the snake direction, and snake has more than 1 piece,
-        // snake should not turn round
-        let (head, _) = snake_transform_query.iter().next().unwrap();
-        if direction != Direction::None && head.0.is_crossing(&direction) {
-            // if there actually has a keyboard input, we should change the direction
-            if direction != Direction::None {
-                for (mut snake, _) in snake_transform_query.iter_mut() {
-                    let tmp = snake.0;
-                    snake.0 = direction;
-                    direction = tmp;
-                }
+        if let Some((head, _)) = snake_transform_query.iter().next() {
+            // if keyboard input does not cross the snake direction, snake should not turn round (which means keyboard input is invalid)
+            // if keyboard input is invalid, we should ignore it and keep the direction of snake head the same as usual
+            if direction == Direction::None || !head.0.is_crossing(&direction) {
+                direction = head.0;
+            }
+            // update directions according to the front pieces
+            for (mut snake, _) in snake_transform_query.iter_mut() {
+                let tmp = snake.0;
+                snake.0 = direction;
+                direction = tmp;
             }
         }
     }
