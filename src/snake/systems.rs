@@ -76,21 +76,41 @@ pub fn snake_dead_check(
     snake_query: Query<(Entity, &Transform), With<Snake>>,
     window_query: Query<&Window, With<PrimaryWindow>>,
 ) {
-    if let Ok((snake_entity, snake_transform)) = snake_query.get_single() {
+    let snakes = snake_query.iter().collect::<Vec<(Entity, &Transform)>>();
+    let len = snakes.len();
+    if len > 0 {
+        // check the collision of snake head and window first
         let window = window_query.get_single().unwrap();
         let x_min = SNAKE_SIZE / 2.0;
         let x_max = window.width() - x_min;
         let y_min = SNAKE_SIZE / 2.0;
         let y_max = window.height() - y_min;
 
-        let translation = snake_transform.translation;
+        let translation = snakes[0].1.translation;
         if translation.x < x_min
             || translation.x > x_max
             || translation.y < y_min
             || translation.y > y_max
         {
-            println!("snake dead");
-            commands.entity(snake_entity).despawn();
+            println!("snake touches edge, dead");
+            for (snake_entity, _) in snakes {
+                commands.entity(snake_entity).despawn();
+            }
+            return;
+        }
+
+        // then check the collision between snake pieces
+        // XXX: the nearby pieces are not needed to check
+        for i in 2..len {
+            let (_, transform) = snakes[i];
+            let distance = snakes[0].1.translation.distance(transform.translation);
+            if distance < SNAKE_SIZE {
+                println!("snake touches itself, dead");
+                for (snake_entity, _) in snakes {
+                    commands.entity(snake_entity).despawn();
+                }
+                return;
+            }
         }
     }
 }
