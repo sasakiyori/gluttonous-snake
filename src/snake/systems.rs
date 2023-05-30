@@ -1,14 +1,11 @@
 use super::{
     components::{Direction, Snake},
-    resources::{SnakeMoveTimer, SnakeResources},
+    resources::{SnakeMoveTimer, SnakeResources, SNAKE_SIZE, SNAKE_SPEED},
 };
 
 use crate::bean::components::Bean;
 
 use bevy::{prelude::*, window::PrimaryWindow};
-
-const SNAKE_SIZE: f32 = 18.0;
-const SNAKE_SPEED: f32 = SNAKE_SIZE / 6.0;
 
 pub fn spawn_snake(
     mut commands: Commands,
