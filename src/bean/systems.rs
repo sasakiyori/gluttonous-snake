@@ -1,7 +1,7 @@
 use super::components::Bean;
-use super::resources::BeanResources;
+use super::resources::{BeanResources, BEAN_RADIUS};
 use crate::snake::components::Snake;
-use crate::snake::resources::{SNAKE_SIZE, SNAKE_SPEED};
+use crate::snake::resources::{SNAKE_RADIUS, SNAKE_SPEED};
 
 use bevy::{prelude::*, window::PrimaryWindow};
 use rand::prelude::random;
@@ -27,12 +27,14 @@ pub fn spawn_bean(
     for _ in 0..10 {
         collision = false;
         // let bean and snake be in the same grid
-        x = (random::<f32>() * window.width() / SNAKE_SPEED).floor() * SNAKE_SPEED;
-        y = (random::<f32>() * window.height() / SNAKE_SPEED).floor() * SNAKE_SPEED;
+        x = (random::<f32>() * (window.width() - BEAN_RADIUS) / SNAKE_SPEED).floor() * SNAKE_SPEED;
+        y = (random::<f32>() * (window.height() - BEAN_RADIUS) / SNAKE_SPEED).floor() * SNAKE_SPEED;
 
         // check collision
         for snake_transform in snake_query.iter() {
-            if snake_transform.translation.distance(Vec3 { x, y, z: 0.0 }) < SNAKE_SIZE {
+            if snake_transform.translation.distance(Vec3 { x, y, z: 0.0 })
+                < SNAKE_RADIUS + BEAN_RADIUS
+            {
                 collision = true;
                 break;
             }

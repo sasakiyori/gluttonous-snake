@@ -59,7 +59,7 @@ This repo still have many works to do and bugs to fix.
 
 - [x] If we change directions when snake eat bean, it may cause the separation of snake body (Main Branch).
 - [ ] Sometimes the snake body is not in the same line (Main Branch).
-- [ ] Beans and snake should be spawned inside the window.
+- [x] Beans and snake should be spawned inside the window.
 - [x] Beans and snake should be spawned with grid alignment.
 - [x] Better snake dead check.
 - [x] The order of dead check and eat check.

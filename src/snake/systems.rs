@@ -1,9 +1,10 @@
 use super::{
     components::{Direction, Snake},
-    resources::{SnakeMoveTimer, SnakeResources, SNAKE_SIZE, SNAKE_SPEED},
+    resources::{SnakeMoveTimer, SnakeResources, SNAKE_RADIUS, SNAKE_SIZE, SNAKE_SPEED},
 };
 
 use crate::bean::components::Bean;
+use crate::bean::resources::BEAN_RADIUS;
 
 use bevy::{prelude::*, window::PrimaryWindow};
 
@@ -78,9 +79,9 @@ pub fn snake_dead_check(
     if len > 0 {
         // check the collision of snake head and window first
         let window = window_query.get_single().unwrap();
-        let x_min = SNAKE_SIZE / 2.0;
+        let x_min = SNAKE_RADIUS;
         let x_max = window.width() - x_min;
-        let y_min = SNAKE_SIZE / 2.0;
+        let y_min = SNAKE_RADIUS;
         let y_max = window.height() - y_min;
 
         let translation = snakes[0].1.translation;
@@ -101,7 +102,7 @@ pub fn snake_dead_check(
         for i in 2..len {
             let (_, transform) = snakes[i];
             let distance = snakes[0].1.translation.distance(transform.translation);
-            if distance < SNAKE_SIZE {
+            if distance < SNAKE_RADIUS + SNAKE_RADIUS {
                 println!("snake touches itself, dead");
                 for (snake_entity, _) in snakes {
                     commands.entity(snake_entity).despawn();
@@ -123,10 +124,7 @@ pub fn snake_eat_bean_check(
     if len > 0 {
         if let Ok((bean_entity, bean_transform)) = bean_query.get_single() {
             let distance = snakes[0].1.translation.distance(bean_transform.translation);
-            let snake_radius = SNAKE_SIZE / 2.0;
-            // TODO: use unique size
-            let bean_radius = SNAKE_SIZE / 2.0;
-            if distance < snake_radius + bean_radius {
+            if distance < SNAKE_RADIUS + BEAN_RADIUS {
                 println!("snake eat bean!");
                 commands.entity(bean_entity).despawn();
                 commands.spawn((
