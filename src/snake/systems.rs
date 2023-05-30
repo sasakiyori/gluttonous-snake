@@ -73,6 +73,8 @@ pub fn snake_dead_check(
     mut commands: Commands,
     snake_query: Query<(Entity, &Transform), With<Snake>>,
     window_query: Query<&Window, With<PrimaryWindow>>,
+    resource_query: Res<SnakeResources>,
+    audio: Res<Audio>,
 ) {
     let snakes = snake_query.iter().collect::<Vec<(Entity, &Transform)>>();
     let len = snakes.len();
@@ -90,7 +92,9 @@ pub fn snake_dead_check(
             || translation.y < y_min
             || translation.y > y_max
         {
-            println!("snake touches edge, dead");
+            // play dead audio
+            audio.play(resource_query.die.clone());
+            // de-spawn all snake pieces
             for (snake_entity, _) in snakes {
                 commands.entity(snake_entity).despawn();
             }
@@ -103,7 +107,9 @@ pub fn snake_dead_check(
             let (_, transform) = snakes[i];
             let distance = snakes[0].1.translation.distance(transform.translation);
             if distance < SNAKE_RADIUS + SNAKE_RADIUS {
-                println!("snake touches itself, dead");
+                // play dead audio
+                audio.play(resource_query.die.clone());
+                // de-spawn all snake pieces
                 for (snake_entity, _) in snakes {
                     commands.entity(snake_entity).despawn();
                 }
@@ -118,6 +124,7 @@ pub fn snake_eat_bean_check(
     snake_query: Query<(&Snake, &Transform), With<Snake>>,
     bean_query: Query<(Entity, &Transform), With<Bean>>,
     resource_query: Res<SnakeResources>,
+    audio: Res<Audio>,
 ) {
     let snakes = snake_query.iter().collect::<Vec<(&Snake, &Transform)>>();
     let len = snakes.len();
@@ -125,8 +132,11 @@ pub fn snake_eat_bean_check(
         if let Ok((bean_entity, bean_transform)) = bean_query.get_single() {
             let distance = snakes[0].1.translation.distance(bean_transform.translation);
             if distance < SNAKE_RADIUS + BEAN_RADIUS {
-                println!("snake eat bean!");
+                // play eat audio
+                audio.play(resource_query.eat.clone());
+                // de-spawn bean
                 commands.entity(bean_entity).despawn();
+                // spawn new snake piece at the snake tail
                 commands.spawn((
                     SpriteBundle {
                         transform: Transform::from_translation(
@@ -144,7 +154,6 @@ pub fn snake_eat_bean_check(
                     },
                     Snake(snakes[len - 1].0 .0),
                 ));
-                println!("snake body expand!");
             }
         }
     }

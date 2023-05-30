@@ -10,6 +10,6 @@ pub struct BeanResources {
 
 pub fn cache_bean_resources(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.insert_resource(BeanResources {
-        image: asset_server.load("bean.png"),
+        image: asset_server.load("sprite/bean.png"),
     });
 }
