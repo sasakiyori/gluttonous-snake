@@ -65,5 +65,9 @@ This repo still have many works to do and bugs to fix.
 - [x] The order of dead check and eat check.
 - [ ] Game Menu.
 - [ ] Score Display.
-- [ ] Audio.
+- [x] Audio.
 - [ ] Better sprite texture.
+
+## Assets
+
+Audio assets comes from [kenney.nl](https://www.kenney.nl/assets/impact-sounds).
