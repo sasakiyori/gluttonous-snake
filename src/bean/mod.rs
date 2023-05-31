@@ -1,5 +1,6 @@
 pub mod components;
-pub mod resources;
+pub mod cst;
+mod resources;
 mod systems;
 
 use bevy::prelude::{App, Plugin};

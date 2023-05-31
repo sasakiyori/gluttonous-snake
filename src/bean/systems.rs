@@ -1,7 +1,8 @@
 use super::components::Bean;
-use super::resources::{BeanResources, BEAN_RADIUS};
+use super::cst::BEAN_RADIUS;
+use super::resources::BeanResources;
 use crate::snake::components::Snake;
-use crate::snake::resources::{SNAKE_RADIUS, SNAKE_SPEED};
+use crate::snake::cst::{SNAKE_RADIUS, SNAKE_SPEED};
 
 use bevy::{prelude::*, window::PrimaryWindow};
 use rand::prelude::random;

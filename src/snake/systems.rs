@@ -1,10 +1,11 @@
 use super::{
     components::{Direction, Snake},
-    resources::{SnakeMoveTimer, SnakeResources, SNAKE_RADIUS, SNAKE_SIZE, SNAKE_SPEED},
+    cst::{SNAKE_RADIUS, SNAKE_SIZE, SNAKE_SPEED},
+    resources::{SnakeMoveTimer, SnakeResources},
 };
 
 use crate::bean::components::Bean;
-use crate::bean::resources::BEAN_RADIUS;
+use crate::bean::cst::BEAN_RADIUS;
 
 use bevy::{prelude::*, window::PrimaryWindow};
 
