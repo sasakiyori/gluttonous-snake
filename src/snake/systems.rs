@@ -6,6 +6,8 @@ use super::{
 
 use crate::bean::components::Bean;
 use crate::bean::cst::BEAN_RADIUS;
+use crate::score::resources::Score;
+use crate::util::resources::GameOver;
 
 use bevy::{prelude::*, window::PrimaryWindow};
 
@@ -76,6 +78,7 @@ pub fn snake_dead_check(
     window_query: Query<&Window, With<PrimaryWindow>>,
     resource_query: Res<SnakeResources>,
     audio: Res<Audio>,
+    mut event_writer: EventWriter<GameOver>,
 ) {
     let snakes = snake_query.iter().collect::<Vec<(Entity, &Transform)>>();
     let len = snakes.len();
@@ -99,6 +102,8 @@ pub fn snake_dead_check(
             for (snake_entity, _) in snakes {
                 commands.entity(snake_entity).despawn();
             }
+            // send game over event
+            event_writer.send(GameOver);
             return;
         }
 
@@ -114,6 +119,8 @@ pub fn snake_dead_check(
                 for (snake_entity, _) in snakes {
                     commands.entity(snake_entity).despawn();
                 }
+                // send game over event
+                event_writer.send(GameOver);
                 return;
             }
         }
@@ -126,6 +133,7 @@ pub fn snake_eat_bean_check(
     bean_query: Query<(Entity, &Transform), With<Bean>>,
     resource_query: Res<SnakeResources>,
     audio: Res<Audio>,
+    mut score: ResMut<Score>,
 ) {
     let snakes = snake_query.iter().collect::<Vec<(&Snake, &Transform)>>();
     let len = snakes.len();
@@ -155,6 +163,8 @@ pub fn snake_eat_bean_check(
                     },
                     Snake(snakes[len - 1].0 .0),
                 ));
+                // update score
+                score.0 += 1;
             }
         }
     }

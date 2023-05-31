@@ -1,1 +1,1 @@
-use bevy::prelude::*;
+pub mod resources;

@@ -1,9 +1,12 @@
 mod bean;
+mod score;
 mod snake;
+mod util;
 
 use bevy::{prelude::*, window::PrimaryWindow};
 
 use bean::BeanPlugin;
+use score::ScorePlugin;
 use snake::SnakePlugin;
 
 fn main() {
@@ -13,6 +16,7 @@ fn main() {
         .add_startup_system(spawn_camera)
         .add_plugin(SnakePlugin)
         .add_plugin(BeanPlugin)
+        .add_plugin(ScorePlugin)
         .run();
 }
 
