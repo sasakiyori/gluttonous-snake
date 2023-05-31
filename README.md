@@ -2,7 +2,11 @@
 
 Rust language version of Gluttonous Snake. Developed by bevy engine.
 
-New to rust and bevy, and try hard to be used to `ECS` :)
+## How to play
+
+- Just run `cargo run`.
+- If you want to build a wasm target and play this game on the web, you can run `zx wasm.mjs` and then open `http://127.0.0.1:8080` to enjoy it.
+
 
 ## Implementations
 
@@ -67,6 +71,7 @@ This repo still have many works to do and bugs to fix.
 - [ ] Score Display.
 - [x] Audio.
 - [ ] Better sprite texture.
+- [x] WASM support.
 
 ## Assets
 
