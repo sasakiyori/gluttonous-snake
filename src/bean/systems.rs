@@ -1,5 +1,5 @@
 use bevy::{prelude::*, window::PrimaryWindow};
-use rand::prelude::random;
+use rand::Rng;
 
 use super::components::Bean;
 use super::cst::BEAN_RADIUS;
@@ -28,9 +28,12 @@ pub fn spawn_bean(
     // only try 10 times :)
     for _ in 0..10 {
         collision = false;
+        // make sure bean is totally inside the window
+        x = rand::thread_rng().gen_range(BEAN_RADIUS..window.width() - BEAN_RADIUS);
+        y = rand::thread_rng().gen_range(BEAN_RADIUS..window.height() - BEAN_RADIUS);
         // let bean and snake be in the same grid
-        x = (random::<f32>() * (window.width() - BEAN_RADIUS) / SNAKE_SPEED).floor() * SNAKE_SPEED;
-        y = (random::<f32>() * (window.height() - BEAN_RADIUS) / SNAKE_SPEED).floor() * SNAKE_SPEED;
+        x = (x / SNAKE_SPEED).floor() * SNAKE_SPEED;
+        y = (y / SNAKE_SPEED).floor() * SNAKE_SPEED;
 
         // check collision
         for snake_transform in snake_query.iter() {
