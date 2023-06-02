@@ -9,6 +9,8 @@ pub const MAIN_MENU_STYLE: Style = Style {
     ..Style::DEFAULT
 };
 
+pub const GAME_OVER_MENU_STYLE: Style = MAIN_MENU_STYLE;
+
 pub const TITLE_STYLE: Style = Style {
     flex_direction: FlexDirection::Row,
     justify_content: JustifyContent::Center,
