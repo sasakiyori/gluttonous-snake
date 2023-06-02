@@ -1,11 +1,12 @@
+use bevy::{prelude::*, window::PrimaryWindow};
+use rand::prelude::random;
+
 use super::components::Bean;
 use super::cst::BEAN_RADIUS;
 use super::resources::BeanResources;
+
 use crate::snake::components::Snake;
 use crate::snake::cst::{SNAKE_RADIUS, SNAKE_SPEED};
-
-use bevy::{prelude::*, window::PrimaryWindow};
-use rand::prelude::random;
 
 pub fn spawn_bean(
     mut commands: Commands,
@@ -55,4 +56,10 @@ pub fn spawn_bean(
         },
         Bean {},
     ));
+}
+
+pub fn despawn_bean(mut commands: Commands, bean_query: Query<Entity, With<Bean>>) {
+    for entity in bean_query.iter() {
+        commands.entity(entity).despawn();
+    }
 }

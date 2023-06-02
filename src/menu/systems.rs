@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use super::components::*;
 use super::styles::*;
 
-use crate::util::resources::GameState;
+use crate::util::resources::*;
 
 pub fn draw_main_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands
@@ -85,5 +85,14 @@ pub fn interact_with_play_button(
             }
             _ => {}
         }
+    }
+}
+
+pub fn handle_game_over(
+    mut event_reader: EventReader<GameOver>,
+    mut next_state: ResMut<NextState<GameState>>,
+) {
+    for _ in event_reader.iter() {
+        next_state.set(GameState::GameOver);
     }
 }
