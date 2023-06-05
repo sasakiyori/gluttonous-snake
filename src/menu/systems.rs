@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use super::components::*;
 use super::styles::*;
 
-use crate::score::resources::Score;
+use crate::score::resources::{HighestScore, Score};
 use crate::util::resources::*;
 
 pub fn draw_main_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -78,6 +78,7 @@ pub fn despawn_main_menu(mut commands: Commands, menu_query: Query<Entity, With<
 pub fn draw_game_over_menu(
     mut commands: Commands,
     score: Res<Score>,
+    highest_score: Res<HighestScore>,
     asset_server: Res<AssetServer>,
 ) {
     commands
@@ -112,6 +113,19 @@ pub fn draw_game_over_menu(
                             ));
                         },
                     );
+            },
+        )
+        .with_children(
+            // highest score box
+            |parent| {
+                parent.spawn(TextBundle::from_section(
+                    format!("History Highest Score: {}", highest_score.0),
+                    TextStyle {
+                        font: asset_server.load("font/orange juice 2.0.ttf"),
+                        font_size: 32.,
+                        color: Color::BLACK,
+                    },
+                ));
             },
         )
         .with_children(

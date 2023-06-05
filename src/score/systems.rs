@@ -13,6 +13,5 @@ pub fn update_highest_score(
 ) {
     for _ in event_reader.iter() {
         highest_score.0 = max(highest_score.0, current_score.0);
-        println!("highest score: {}", highest_score.0);
     }
 }
