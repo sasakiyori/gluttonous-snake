@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use super::components::*;
 use super::styles::*;
 
+use crate::score::resources::Score;
 use crate::util::resources::*;
 
 pub fn draw_main_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -74,7 +75,11 @@ pub fn despawn_main_menu(mut commands: Commands, menu_query: Query<Entity, With<
     }
 }
 
-pub fn draw_game_over_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
+pub fn draw_game_over_menu(
+    mut commands: Commands,
+    score: Res<Score>,
+    asset_server: Res<AssetServer>,
+) {
     commands
         .spawn(
             // game over menu box
@@ -107,6 +112,19 @@ pub fn draw_game_over_menu(mut commands: Commands, asset_server: Res<AssetServer
                             ));
                         },
                     );
+            },
+        )
+        .with_children(
+            // score box
+            |parent| {
+                parent.spawn(TextBundle::from_section(
+                    format!("Score: {}", score.0),
+                    TextStyle {
+                        font: asset_server.load("font/orange juice 2.0.ttf"),
+                        font_size: 32.,
+                        color: Color::BLACK,
+                    },
+                ));
             },
         )
         .with_children(
@@ -148,12 +166,14 @@ pub fn despawn_game_over_menu(
 
 pub fn interact_with_play_button(
     mut button_query: Query<&Interaction, With<PlayButton>>,
+    mut score: ResMut<Score>,
     mut next_state: ResMut<NextState<GameState>>,
 ) {
     for interaction in button_query.iter_mut() {
         match *interaction {
             Interaction::Clicked => {
                 next_state.set(GameState::Playing);
+                score.0 = 0;
             }
             _ => {}
         }
