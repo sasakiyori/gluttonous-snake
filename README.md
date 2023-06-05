@@ -68,8 +68,8 @@ This repo still have many works to do and bugs to fix.
 - [x] Beans and snake should be spawned with grid alignment.
 - [x] Better snake dead check.
 - [x] The order of dead check and eat check.
-- [ ] Game Menu.
-- [ ] Score Display.
+- [x] Game Menu.
+- [x] Score Display.
 - [x] Audio.
 - [ ] Better sprite texture.
 - [x] WASM support.
