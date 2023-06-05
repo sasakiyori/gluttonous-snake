@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+use super::resources::MenuResources;
+
 pub const MAIN_MENU_STYLE: Style = Style {
     flex_direction: FlexDirection::Column,
     justify_content: JustifyContent::Center,
@@ -26,3 +28,11 @@ pub const PLAY_BUTTON_STYLE: Style = Style {
     size: Size::new(Val::Px(100.), Val::Px(100.)),
     ..Style::DEFAULT
 };
+
+pub fn text_style(menu_resource: &Res<MenuResources>, font_size: f32, color: Color) -> TextStyle {
+    TextStyle {
+        font: menu_resource.font.clone(),
+        font_size,
+        color,
+    }
+}

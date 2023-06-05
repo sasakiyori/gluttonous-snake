@@ -1,12 +1,13 @@
 use bevy::prelude::*;
 
 use super::components::*;
+use super::resources::MenuResources;
 use super::styles::*;
 
 use crate::score::resources::{HighestScore, Score};
 use crate::util::resources::*;
 
-pub fn draw_main_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
+pub fn draw_main_menu(mut commands: Commands, menu_resource: Res<MenuResources>) {
     commands
         .spawn(
             // main menu box
@@ -31,11 +32,7 @@ pub fn draw_main_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
                         |parent| {
                             parent.spawn(TextBundle::from_section(
                                 "Gluttonous Snake",
-                                TextStyle {
-                                    font: asset_server.load("font/orange juice 2.0.ttf"),
-                                    font_size: 64.,
-                                    color: Color::BLACK,
-                                },
+                                text_style(&menu_resource, 64., Color::BLACK),
                             ));
                         },
                     );
@@ -57,11 +54,7 @@ pub fn draw_main_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
                         |parent| {
                             parent.spawn(TextBundle::from_section(
                                 "Play",
-                                TextStyle {
-                                    font: asset_server.load("font/orange juice 2.0.ttf"),
-                                    font_size: 32.,
-                                    color: Color::BLACK,
-                                },
+                                text_style(&menu_resource, 32., Color::BLACK),
                             ));
                         },
                     );
@@ -79,7 +72,7 @@ pub fn draw_game_over_menu(
     mut commands: Commands,
     score: Res<Score>,
     highest_score: Res<HighestScore>,
-    asset_server: Res<AssetServer>,
+    menu_resource: Res<MenuResources>,
 ) {
     commands
         .spawn(
@@ -105,11 +98,7 @@ pub fn draw_game_over_menu(
                         |parent| {
                             parent.spawn(TextBundle::from_section(
                                 "Game Over",
-                                TextStyle {
-                                    font: asset_server.load("font/orange juice 2.0.ttf"),
-                                    font_size: 64.,
-                                    color: Color::BLACK,
-                                },
+                                text_style(&menu_resource, 64., Color::BLACK),
                             ));
                         },
                     );
@@ -120,11 +109,7 @@ pub fn draw_game_over_menu(
             |parent| {
                 parent.spawn(TextBundle::from_section(
                     format!("History Highest Score: {}", highest_score.0),
-                    TextStyle {
-                        font: asset_server.load("font/orange juice 2.0.ttf"),
-                        font_size: 32.,
-                        color: Color::BLACK,
-                    },
+                    text_style(&menu_resource, 32., Color::BLACK),
                 ));
             },
         )
@@ -133,11 +118,7 @@ pub fn draw_game_over_menu(
             |parent| {
                 parent.spawn(TextBundle::from_section(
                     format!("Score: {}", score.0),
-                    TextStyle {
-                        font: asset_server.load("font/orange juice 2.0.ttf"),
-                        font_size: 32.,
-                        color: Color::BLACK,
-                    },
+                    text_style(&menu_resource, 32., Color::BLACK),
                 ));
             },
         )
@@ -157,11 +138,7 @@ pub fn draw_game_over_menu(
                         |parent| {
                             parent.spawn(TextBundle::from_section(
                                 "Play Again",
-                                TextStyle {
-                                    font: asset_server.load("font/orange juice 2.0.ttf"),
-                                    font_size: 32.,
-                                    color: Color::BLACK,
-                                },
+                                text_style(&menu_resource, 32., Color::BLACK),
                             ));
                         },
                     );
