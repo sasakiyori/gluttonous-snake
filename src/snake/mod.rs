@@ -9,7 +9,9 @@ use resources::*;
 use systems::*;
 
 use crate::util::resources::GameState;
-
+use bevy::ecs::prelude::IntoSystemSetConfig;
+use bevy::time::common_conditions::on_timer;
+use std::time::Duration;
 pub struct SnakePlugin;
 
 impl Plugin for SnakePlugin {
@@ -26,7 +28,7 @@ impl Plugin for SnakePlugin {
                     snake_dead_check,
                     snake_eat_bean_check,
                     apply_system_buffers,
-                    snake_move,
+                    snake_move.run_if(on_timer(Duration::from_secs_f32(1.0 / 30.0))),
                 )
                     .in_set(OnUpdate(GameState::Playing))
                     .chain(),
