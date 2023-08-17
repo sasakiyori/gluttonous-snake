@@ -16,3 +16,5 @@ Cargo.lock
 
 # Ignore wasm targets
 /wasm
+
+dist/

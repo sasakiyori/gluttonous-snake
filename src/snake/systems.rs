@@ -33,33 +33,6 @@ pub fn snake_move(
     mut snake_move_timer: ResMut<SnakeMoveTimer>,
     time: Res<Time>,
 ) {
-    // at the specific frame, we should change the direction by keyboard input
-    if snake_move_timer.timer.tick(time.delta()).just_finished() {
-        let mut direction = Direction::None;
-        if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
-            direction = Direction::Left;
-        } else if keyboard_input.pressed(KeyCode::Right) || keyboard_input.pressed(KeyCode::D) {
-            direction = Direction::Right;
-        } else if keyboard_input.pressed(KeyCode::Up) || keyboard_input.pressed(KeyCode::W) {
-            direction = Direction::Up;
-        } else if keyboard_input.pressed(KeyCode::Down) || keyboard_input.pressed(KeyCode::S) {
-            direction = Direction::Down;
-        }
-
-        if let Some((head, _)) = snake_transform_query.iter().next() {
-            // if keyboard input does not cross the snake direction, snake should not turn round (which means keyboard input is invalid)
-            // if keyboard input is invalid, we should ignore it and keep the direction of snake head the same as usual
-            if direction == Direction::None || !head.0.is_crossing(&direction) {
-                direction = head.0;
-            }
-            // update directions according to the front pieces
-            for (mut snake, _) in snake_transform_query.iter_mut() {
-                let tmp = snake.0;
-                snake.0 = direction;
-                direction = tmp;
-            }
-        }
-    }
     // movement
     for (snake, mut transform) in snake_transform_query.iter_mut() {
         transform.translation += match snake.0 {
@@ -68,6 +41,32 @@ pub fn snake_move(
             Direction::Up => Vec3::new(0.0, SNAKE_SPEED, 0.0),
             Direction::Down => Vec3::new(0.0, -SNAKE_SPEED, 0.0),
             _ => Vec3::ZERO,
+        }
+    }
+    // at the specific frame, we should change the direction by keyboard input
+
+    let mut direction = Direction::None;
+    if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
+        direction = Direction::Left;
+    } else if keyboard_input.pressed(KeyCode::Right) || keyboard_input.pressed(KeyCode::D) {
+        direction = Direction::Right;
+    } else if keyboard_input.pressed(KeyCode::Up) || keyboard_input.pressed(KeyCode::W) {
+        direction = Direction::Up;
+    } else if keyboard_input.pressed(KeyCode::Down) || keyboard_input.pressed(KeyCode::S) {
+        direction = Direction::Down;
+    }
+
+    if let Some((head, _)) = snake_transform_query.iter().next() {
+        // if keyboard input does not cross the snake direction, snake should not turn round (which means keyboard input is invalid)
+        // if keyboard input is invalid, we should ignore it and keep the direction of snake head the same as usual
+        if direction == Direction::None || !head.0.is_crossing(&direction) {
+            direction = head.0;
+        }
+        // update directions according to the front pieces
+        for (mut snake, _) in snake_transform_query.iter_mut() {
+            let tmp = snake.0;
+            snake.0 = direction;
+            direction = tmp;
         }
     }
 }
