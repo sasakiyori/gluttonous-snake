@@ -30,8 +30,6 @@ pub fn spawn_snake(
 pub fn snake_move(
     keyboard_input: Res<Input<KeyCode>>,
     mut snake_transform_query: Query<(&mut Snake, &mut Transform), With<Snake>>,
-    mut snake_move_timer: ResMut<SnakeMoveTimer>,
-    time: Res<Time>,
 ) {
     // movement
     for (snake, mut transform) in snake_transform_query.iter_mut() {
@@ -133,7 +131,6 @@ pub fn snake_eat_bean_check(
     resource_query: Res<SnakeResources>,
     audio: Res<Audio>,
     mut score: ResMut<Score>,
-    mut snake_move_timer: ResMut<SnakeMoveTimer>,
 ) {
     let snakes = snake_query.iter().collect::<Vec<(&Snake, &Transform)>>();
     let len = snakes.len();
@@ -165,7 +162,6 @@ pub fn snake_eat_bean_check(
                 ));
                 // update score
                 score.0 += 1;
-                snake_move_timer.status = 0;
             }
         }
     }
