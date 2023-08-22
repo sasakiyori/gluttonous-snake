@@ -38,6 +38,11 @@ The rule for direction change is:
 
 ![snake move](doc/m1.png)
 
+#### [Patch For Main Branch](https://github.com/sasakiyori/gluttonous-snake/tree/optimize-snake-body-dislocation)
+
+Here is a patch for main branch, which fix the dislocation problem of snake body. I'm not sure if it is the core cause, so it is merged into `optimize-snake-body-dislocation` branch temporarily.
+
+
 ### [Move By Carry Pieces Branch](https://github.com/sasakiyori/gluttonous-snake/tree/move_by_carry_pieces)
 
 Snake stores as pieces, but there is a struct to manage all pieces and the main direction of snake.
