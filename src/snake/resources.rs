@@ -1,7 +1,5 @@
 use bevy::prelude::*;
 
-use super::cst::SNAKE_MOVE_DURATION;
-
 #[derive(Resource)]
 pub struct SnakeResources {
     pub image: Handle<Image>,
@@ -19,13 +17,11 @@ pub fn cache_snake_resources(mut commands: Commands, asset_server: Res<AssetServ
 
 #[derive(Resource)]
 pub struct SnakeMoveTimer {
-    pub timer: Timer,
+    pub status: i32,
 }
 
 impl Default for SnakeMoveTimer {
     fn default() -> Self {
-        Self {
-            timer: Timer::from_seconds(SNAKE_MOVE_DURATION, TimerMode::Repeating),
-        }
+        Self { status: 1 }
     }
 }
